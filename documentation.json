@@ -9,98 +9,112 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "products": [
       {
-        "tab": "Guides",
-        "icon": "album",
-        "groups": [
+        "product": "Alpha",
+        "tabs": [
           {
-            "group": "Getting Started",
-            "icon": "rocket",
-            "pages": [
-              {
-                "title": "Introduction",
-                "path": "introduction",
-                "icon": "home"
-              },
-              {
-                "title": "Quickstart",
-                "path": "quickstart",
-                "icon": "zap"
-              },
-              {
-                "title": "Troubleshooting",
-                "path": "troubleshooting",
-                "icon": "alert-circle"
-              }
-            ]
-          },
-          {
-            "group": "Integrations",
-            "icon": "plug",
-            "pages": [
-              {
-                "title": "Slack",
-                "path": "slack",
-                "icon": "message-square"
-              },
-              {
-                "title": "Microsoft Teams",
-                "path": "teams",
-                "icon": "users"
-              },
-              {
-                "title": "Google Drive",
-                "path": "google-drive",
-                "icon": "hard-drive"
-              },
-              {
-                "title": "Intercom",
-                "path": "intercom",
-                "icon": "headset"
-              }
-            ]
-          },
-          {
-            "group": "Updates",
-            "pages": [
-              {
-                "title": "Changelog",
-                "path": "changelog",
-                "icon": "history"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "icon": "activity-square",
-        "dropdowns": [
-          {
-            "dropdown": "Version 1",
+            "tab": "Guides",
+            "icon": "album",
             "groups": [
               {
-                "group": "API Overview",
-                "icon": "file-text",
+                "group": "Getting Started",
+                "icon": "rocket",
                 "pages": [
                   {
-                    "title": "Authentication",
-                    "path": "authentication",
-                    "icon": "lock"
+                    "title": "Introduction",
+                    "path": "introduction",
+                    "icon": "home"
+                  },
+                  {
+                    "title": "Quickstart",
+                    "path": "quickstart",
+                    "icon": "zap"
+                  },
+                  {
+                    "title": "Troubleshooting",
+                    "path": "troubleshooting",
+                    "icon": "alert-circle"
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "icon": "plug",
+                "pages": [
+                  {
+                    "title": "Slack",
+                    "path": "slack",
+                    "icon": "message-square"
+                  },
+                  {
+                    "title": "Microsoft Teams",
+                    "path": "teams",
+                    "icon": "users"
+                  },
+                  {
+                    "title": "Google Drive",
+                    "path": "google-drive",
+                    "icon": "hard-drive"
+                  },
+                  {
+                    "title": "Intercom",
+                    "path": "intercom",
+                    "icon": "headset"
+                  }
+                ]
+              },
+              {
+                "group": "Updates",
+                "pages": [
+                  {
+                    "title": "Changelog",
+                    "path": "changelog",
+                    "icon": "history"
                   }
                 ]
               }
             ]
           },
           {
-            "dropdown": "Version 2",
-            "pages": [
+            "tab": "API Reference",
+            "icon": "activity-square",
+            "dropdowns": [
               {
-                "title": "API Specs V2",
-                "path": "api-specs-v2"
+                "dropdown": "Version 1",
+                "groups": [
+                  {
+                    "group": "API Overview",
+                    "icon": "file-text",
+                    "pages": [
+                      {
+                        "title": "Authentication",
+                        "path": "authentication",
+                        "icon": "lock"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dropdown": "Version 2",
+                "pages": [
+                  {
+                    "title": "API Specs V2",
+                    "path": "api-specs-v2"
+                  }
+                ]
               }
             ]
+          }
+        ]
+      },
+      {
+        "product": "Beta",
+        "pages": [
+          {
+            "title": "New Documentation - Beta",
+            "path": "new-documentation---beta"
           }
         ]
       }
