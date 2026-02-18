@@ -79,7 +79,8 @@
                   }
                 ]
               }
-            ]
+            ],
+            "public": true
           },
           {
             "tab": "API Reference",
@@ -110,9 +111,11 @@
                   }
                 ]
               }
-            ]
+            ],
+            "public": false
           }
-        ]
+        ],
+        "public": true
       },
       {
         "product": "Beta",
