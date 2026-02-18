@@ -15,6 +15,11 @@
         "icon": "rocket",
         "pages": [
           {
+            "title": "Troubleshooting",
+            "path": "troubleshooting",
+            "icon": "alert-circle"
+          },
+          {
             "title": "Introduction",
             "path": "introduction",
             "icon": "home"
@@ -23,11 +28,6 @@
             "title": "Quickstart",
             "path": "quickstart",
             "icon": "zap"
-          },
-          {
-            "title": "Components",
-            "path": "components",
-            "icon": "code"
           }
         ]
       },
