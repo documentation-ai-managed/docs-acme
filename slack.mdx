@@ -1,0 +1,397 @@
+---
+title: Slack integration guide
+description: Learn how to connect your SaaS app to Slack using OAuth, events, and request verification.
+---
+
+## Overview
+
+This guide shows how to integrate a SaaS application with Slack using:
+
+- A custom Slack app
+- OAuth 2.0 install flow
+- Bot scopes and permissions
+- Event Subscriptions for receiving data from Slack
+- Request signature verification
+
+It is product-agnostic and uses placeholders where your app&apos;s URLs or APIs should be inserted.
+
+<Callout kind="info">
+
+You should already have basic familiarity with HTTP APIs and a backend framework such as Express, Django, or Rails.
+
+</Callout>
+
+## Prerequisites
+
+Before you start, you need:
+
+- A Slack workspace where you can install custom apps (a development workspace is recommended)
+- A Slack account with permission to create apps at [api.slack.com](https://api.slack.com)
+- A publicly reachable HTTPS endpoint for:
+  - OAuth redirect URL (for the install flow)
+  - Event Request URL (for incoming events)
+- A secure way to store secrets (for example, environment variables or a secret manager)
+
+You will also get these values from Slack during setup:
+
+- Client ID
+- Client secret
+- Signing secret
+- Bot user OAuth token (after installation)
+
+## Create a Slack app
+
+Follow these steps in the Slack API dashboard.
+
+<Steps>
+  <Step title="Create a new app" icon="plus" titleType="p">
+
+  1. Go to [Your Apps](https://api.slack.com/apps) on Slack.
+  2. Select **Create New App**.
+  3. Choose **From scratch**.
+  4. Enter an app name (for example, `Your SaaS App Bot`).
+  5. Choose your development workspace and click **Create App**.
+
+  </Step>
+
+  <Step title="Configure basic information" icon="settings" titleType="p">
+
+  Inside your new app:
+
+  - Go to **Basic Information**.
+  - Note the **Client ID**, **Client Secret**, and **Signing Secret**. You will use these in your backend.
+  - Optionally upload an app icon and set the short description and background information.
+
+  </Step>
+
+  <Step title="Add a bot user" icon="users" titleType="p">
+
+  - Go to **App Home**.
+  - Under **App Display Name**, ensure a bot user is enabled.
+  - Configure the bot&apos;s display name and default username.
+  - Save your changes.
+
+  </Step>
+</Steps>
+
+## Configure OAuth install flow
+
+You will use Slack&apos;s OAuth 2.0 flow so workspace admins can install your app.
+
+### Redirect URL setup
+
+1. Decide on a redirect URL in your app, for example:
+
+   - `https://YOUR_APP_DOMAIN.com/integrations/slack/oauth/callback`
+
+2. Implement an endpoint at this URL that:
+
+   - Accepts a `code` query parameter from Slack
+   - Exchanges the code for an access token via Slack&apos;s OAuth endpoint
+   - Stores the resulting tokens (bot user token and, optionally, user token) associated with the installing workspace
+
+3. In the Slack app configuration:
+
+   - Go to **OAuth & Permissions**.
+   - Under **Redirect URLs**, click **Add New Redirect URL**.
+   - Enter your URL, for example:
+
+     ```text
+     https://YOUR_APP_DOMAIN.com/integrations/slack/oauth/callback
+     ```
+
+   - Click **Save URLs** then **Install to Workspace** to test.
+
+<Callout kind="tip">
+
+If you plan to have separate environments (for example, staging and production), add a redirect URL for each environment.
+
+</Callout>
+
+### Example authorization URL
+
+You can construct an install link for admins to click:
+
+```text
+https://slack.com/oauth/v2/authorize
+  ?client_id=YOUR_SLACK_CLIENT_ID
+  &scope=commands,chat:write
+  &user_scope=
+  &redirect_uri=https%3A%2F%2FYOUR_APP_DOMAIN.com%2Fintegrations%2Fslack%2Foauth%2Fcallback
+  &state=SOME_CSRF_TOKEN
+```
+
+Replace:
+
+- `YOUR_SLACK_CLIENT_ID` with your app&apos;s client ID
+- `redirect_uri` with your encoded redirect URL
+- `state` with a CSRF token or installation identifier you verify later
+
+### Typical required scopes
+
+Slack uses scopes to control what your app can do. Common bot scopes include:
+
+- `chat:write` &mdash; post messages as the app
+- `chat:write.public` &mdash; post in channels the app is not a member of (when combined with `chat:write`)
+- `channels:history` / `groups:history` / `im:history` / `mpim:history` &mdash; read messages, where needed
+- `commands` &mdash; create slash commands
+- `reactions:read` / `reactions:write` &mdash; work with reactions
+- `users:read` / `users:read.email` &mdash; access user profile details
+
+<Callout kind="alert">
+
+Only request scopes you actually use. Requesting too many scopes can cause admins to abandon installation.
+
+</Callout>
+
+## Receive events from Slack
+
+Use Event Subscriptions to receive messages, reactions, and other events from Slack as HTTP POST requests to your server.
+
+### Enable event subscriptions
+
+1. In your app configuration, go to **Event Subscriptions**.
+2. Toggle **Enable Events** to **On**.
+3. Set the **Request URL** to your event endpoint, for example:
+
+   ```text
+   https://YOUR_APP_DOMAIN.com/integrations/slack/events
+   ```
+
+4. Slack will send a `url_verification` challenge request to this URL. Your endpoint must echo back the `challenge` value from Slack&apos;s JSON body.
+5. After Slack successfully verifies the URL, you can select the event types your app needs.
+
+### Subscribe to bot events
+
+Under **Subscribe to bot events**, add events such as:
+
+- `message.channels` &mdash; messages posted in public channels
+- `message.im` &mdash; messages in direct messages with the bot
+- `reaction_added` &mdash; when users add reactions
+
+Slack will now POST event payloads to your Request URL whenever these events fire.
+
+### Minimal example event payload
+
+Slack payloads contain a top-level wrapper with an `event` object. A simple `message.channels` event might look like:
+
+```json
+{
+  "token": "legacy-verification-token",
+  "team_id": "T01234567",
+  "api_app_id": "A01234567",
+  "type": "event_callback",
+  "event_id": "Ev01ABCDE2",
+  "event_time": 1710000000,
+  "authed_users": ["U01234567"],
+  "event": {
+    "type": "message",
+    "user": "U12345678",
+    "text": "Hello from Slack",
+    "ts": "1710000000.000100",
+    "channel": "C12345678",
+    "event_ts": "1710000000.000100"
+  }
+}
+```
+
+Your integration typically cares most about the `event` object, but you should still validate the request and handle envelope fields.
+
+## Verify Slack requests
+
+Slack signs each request using a signing secret. You must verify this signature to ensure requests are from Slack and to prevent replay attacks.
+
+At a high level:
+
+1. Read the `X-Slack-Request-Timestamp` and `X-Slack-Signature` headers from the incoming request.
+2. Ensure the timestamp is recent (for example, within 5 minutes).
+3. Construct a base string:
+
+   ```text
+   v0:SLACK_REQUEST_TIMESTAMP:RAW_REQUEST_BODY
+   ```
+
+4. Compute an HMAC SHA256 hash of the base string using your **Signing Secret**.
+5. Prefix the hex digest with `v0=` and compare against `X-Slack-Signature` using a constant-time comparison.
+
+<Callout kind="danger">
+
+Always verify signatures using the raw, unparsed body bytes. Middleware that parses JSON first can change whitespace and break signature verification.
+
+</Callout>
+
+## Example: handling events in Node and Express
+
+The following example shows a simple Express server that:
+
+- Handles Slack&apos;s `url_verification` challenge
+- Verifies request signatures
+- Logs incoming `message` events
+
+<Callout kind="info">
+
+This is a minimal example. In a real app, you should add structured logging, error handling, and route organization, then call your own business logic or background jobs from the event handler.
+
+</Callout>
+
+```bash
+npm install express body-parser crypto
+```
+
+```javascript
+// server.js
+const express = require("express");
+const bodyParser = require("body-parser");
+const crypto = require("crypto");
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Set your Slack signing secret
+const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
+
+// Use raw body for signature verification
+app.use(
+  "/integrations/slack/events",
+  bodyParser.raw({ type: "application/json" })
+);
+
+function verifySlackRequest(req, res, next) {
+  const slackSignature = req.headers["x-slack-signature"];
+  const slackTimestamp = req.headers["x-slack-request-timestamp"];
+
+  if (!slackSignature || !slackTimestamp) {
+    return res.status(400).send("Missing Slack signature headers");
+  }
+
+  const fiveMinutes = 60 * 5;
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  if (Math.abs(currentTime - slackTimestamp) > fiveMinutes) {
+    return res.status(400).send("Ignored stale request");
+  }
+
+  const basestring = `v0:${slackTimestamp}:${req.body.toString("utf8")}`;
+
+  const hmac = crypto
+    .createHmac("sha256", SLACK_SIGNING_SECRET)
+    .update(basestring)
+    .digest("hex");
+
+  const computedSignature = `v0=${hmac}`;
+
+  if (
+    !crypto.timingSafeEqual(
+      Buffer.from(computedSignature, "utf8"),
+      Buffer.from(slackSignature, "utf8")
+    )
+  ) {
+    return res.status(400).send("Invalid signature");
+  }
+
+  next();
+}
+
+app.post(
+  "/integrations/slack/events",
+  verifySlackRequest,
+  (req, res) => {
+    const payload = JSON.parse(req.body.toString("utf8"));
+
+    // Handle URL verification challenge
+    if (payload.type === "url_verification") {
+      return res.status(200).send(payload.challenge);
+    }
+
+    if (payload.type === "event_callback") {
+      const event = payload.event;
+
+      if (event.type === "message" && !event.bot_id) {
+        console.log(
+          `Received message from ${event.user} in ${event.channel}: ${event.text}`
+        );
+
+        // TODO: call your app logic here
+      }
+    }
+
+    // Always respond quickly to Slack
+    res.status(200).send();
+  }
+);
+
+app.listen(port, () => {
+  console.log(`Slack integration listening on port ${port}`);
+});
+```
+
+## Testing checklist
+
+Use this checklist to validate your Slack integration end to end.
+
+- [ ] Install the app to a development workspace using your OAuth install link
+- [ ] Confirm your OAuth redirect handler exchanges the code and stores tokens
+- [ ] Send yourself a test message where the bot can see it and verify it arrives at your event endpoint
+- [ ] Check that your server logs or app UI reflect incoming events as expected
+- [ ] Rotate the signing secret in your environment and confirm signature verification still passes
+- [ ] Restart your server and ensure the integration comes back up correctly
+- [ ] Test multiple workspaces if your app supports multi-tenant Slack connections
+
+## Common troubleshooting
+
+<Expandable title="Slack shows an invalid redirect URI error" default-open="false">
+
+Verify that:
+
+- The `redirect_uri` in your authorization URL exactly matches one of the **Redirect URLs** configured in **OAuth & Permissions**.
+- You are using HTTPS and a publicly accessible domain.
+- There are no extra query parameters or trailing slashes not present in the Slack configuration.
+
+</Expandable>
+
+<Expandable title="My event endpoint never receives requests" default-open="false">
+
+Check that:
+
+- **Event Subscriptions** are enabled in your app settings.
+- The **Request URL** is correct, publicly accessible, and uses HTTPS.
+- Slack passed URL verification successfully (you should see a previous `url_verification` request).
+- You subscribed to the correct bot events (for example, `message.channels` for channel messages).
+- There are no firewall or IP restrictions blocking Slack&apos;s requests.
+
+</Expandable>
+
+<Expandable title="I get invalid signature or 400 errors" default-open="false">
+
+Confirm that:
+
+- You copied the **Signing Secret** (not the client secret) into `SLACK_SIGNING_SECRET`.
+- You use the raw request body bytes to compute the HMAC; parsing JSON before verification will break the signature.
+- The timestamp tolerance (for example, 5 minutes) matches your code logic and your server&apos;s clock is accurate.
+- You are using `crypto.timingSafeEqual` or an equivalent constant-time comparison to avoid subtle mismatches.
+
+</Expandable>
+
+<Expandable title="Slack retries the same event multiple times" default-open="false">
+
+Slack will retry if your endpoint:
+
+- Returns a non-2xx status code
+- Takes too long to respond
+
+To handle this safely:
+
+- Always respond with `200` quickly, then process the event asynchronously.
+- Use the `event_id` value to de-duplicate events you have already processed.
+
+</Expandable>
+
+## Next steps
+
+Once the basic integration is working, you can:
+
+- Add slash commands and interactive components (such as buttons and modals)
+- Post rich messages with blocks using the `chat.postMessage` API
+- Connect specific events to workflows in your SaaS app (for example, notifications, task creation, or syncing data)
+
+Integrate these behaviors into your own API routes and data model using the patterns established above.

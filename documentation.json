@@ -47,6 +47,32 @@
             ]
           },
           {
+            "group": "Integrations",
+            "icon": "plug",
+            "pages": [
+              {
+                "title": "Slack",
+                "path": "slack",
+                "icon": "message-square"
+              },
+              {
+                "title": "Microsoft Teams",
+                "path": "teams",
+                "icon": "users"
+              },
+              {
+                "title": "Google Drive",
+                "path": "google-drive",
+                "icon": "hard-drive"
+              },
+              {
+                "title": "Intercom",
+                "path": "intercom",
+                "icon": "headset"
+              }
+            ]
+          },
+          {
             "group": "Updates",
             "pages": [
               {
