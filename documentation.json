@@ -43,6 +43,11 @@
                 "icon": "plug",
                 "pages": [
                   {
+                    "title": "Overview",
+                    "path": "integrations",
+                    "icon": "layout-panel-top"
+                  },
+                  {
                     "title": "Slack",
                     "path": "slack",
                     "icon": "message-square"

@@ -21,6 +21,18 @@ You should already have basic familiarity with HTTP APIs and a backend framework
 
 </Callout>
 
+## Quick links
+
+- [OAuth setup](#oauth-setup)
+  - [Redirect URL setup](#redirect-url-setup)
+  - [Example authorization URL](#example-authorization-url)
+  - [Typical required scopes](#typical-required-scopes)
+- [Event subscriptions and real-time updates](#event-subscriptions-and-real-time-updates)
+- [Request signature verification](#request-signature-verification)
+- [Syncing Slack data into your app](#syncing-slack-data-into-your-app)
+- [Testing checklist](#testing-checklist)
+- [Common troubleshooting](#common-troubleshooting)
+
 ## Prerequisites
 
 Before you start, you need:
@@ -74,7 +86,7 @@ Follow these steps in the Slack API dashboard.
   </Step>
 </Steps>
 
-## Configure OAuth install flow
+## OAuth setup
 
 You will use Slack&apos;s OAuth 2.0 flow so workspace admins can install your app.
 
@@ -144,9 +156,9 @@ Only request scopes you actually use. Requesting too many scopes can cause admin
 
 </Callout>
 
-## Receive events from Slack
+## Event subscriptions and real-time updates
 
-Use Event Subscriptions to receive messages, reactions, and other events from Slack as HTTP POST requests to your server.
+Use Event Subscriptions to receive messages, reactions, and other events from Slack as HTTP POST requests to your server. This is the primary way to keep your app up to date with what is happening in connected workspaces.
 
 ### Enable event subscriptions
 
@@ -161,6 +173,12 @@ Use Event Subscriptions to receive messages, reactions, and other events from Sl
 4. Slack will send a `url_verification` challenge request to this URL. Your endpoint must echo back the `challenge` value from Slack&apos;s JSON body.
 5. After Slack successfully verifies the URL, you can select the event types your app needs.
 
+<Callout kind="tip">
+
+Start with a small set of events that map directly to features in your app (for example, messages that should create notifications, or reactions that should trigger workflow updates). You can add more events later as your integration grows.
+
+</Callout>
+
 ### Subscribe to bot events
 
 Under **Subscribe to bot events**, add events such as:
@@ -169,7 +187,7 @@ Under **Subscribe to bot events**, add events such as:
 - `message.im` &mdash; messages in direct messages with the bot
 - `reaction_added` &mdash; when users add reactions
 
-Slack will now POST event payloads to your Request URL whenever these events fire.
+Slack will now POST event payloads to your Request URL whenever these events fire. Use a development workspace to trigger test events manually (for example, by sending messages or adding reactions) and confirm they reach your endpoint.
 
 ### Minimal example event payload
 
@@ -197,7 +215,7 @@ Slack payloads contain a top-level wrapper with an `event` object. A simple `mes
 
 Your integration typically cares most about the `event` object, but you should still validate the request and handle envelope fields.
 
-## Verify Slack requests
+## Request signature verification
 
 Slack signs each request using a signing secret. You must verify this signature to ensure requests are from Slack and to prevent replay attacks.
 
@@ -219,6 +237,75 @@ At a high level:
 Always verify signatures using the raw, unparsed body bytes. Middleware that parses JSON first can change whitespace and break signature verification.
 
 </Callout>
+
+### Validation and debug checklist
+
+If verification is failing, walk through these checks:
+
+- Confirm you are using the **Signing Secret** from **Basic Information**, not the client secret.
+- Log the request timestamp, computed base string, and computed signature (in a safe, non-production environment) to compare with Slack&apos;s signature.
+- Check that the `X-Slack-Request-Timestamp` header is within your allowed clock skew window (for example, 5 minutes) and that your server clock is accurate.
+- Ensure you are reading the exact raw body bytes that Slack sent when computing the HMAC.
+- Verify that the HMAC algorithm and version prefix match Slack&apos;s documented format (for example, `v0`).
+
+### Signature troubleshooting
+
+Add targeted logging around your verification code, such as:
+
+- Whether the required headers are present
+- The age of the request based on the timestamp header
+- A boolean flag indicating if the computed signature matched Slack&apos;s signature
+
+If you still see failures:
+
+- Temporarily log example headers and base strings in a development environment so you can manually recompute the HMAC.
+- Reduce complexity by testing with a minimal handler that only performs verification and echoes success or failure, then integrate that logic into your main event handler once it works reliably.
+
+## Syncing Slack data into your app
+
+Once you are receiving and verifying events, you need a strategy to keep your own data model in sync with Slack over time.
+
+### Process events asynchronously
+
+Slack expects fast responses. To avoid timeouts and retries:
+
+- Parse and validate the payload.
+- Enqueue a job or trigger background work to perform heavier processing.
+- Return `200` to Slack as soon as possible, even if downstream processing is still running.
+
+This pattern makes your integration more resilient to spikes in Slack activity.
+
+### Use `event_id` for idempotency
+
+Slack can retry the same event more than once. To avoid processing duplicates:
+
+- Store each `event_id` you process, along with a timestamp and processing status.
+- Before handling a new event, check whether its `event_id` has already been processed successfully.
+- If it has, skip re-running your business logic and simply return `200`.
+
+This ensures your app&apos;s side effects (for example, creating a record or sending a notification) happen at most once per event.
+
+### Handle retries safely
+
+Slack retries when:
+
+- Your endpoint returns a non-2xx status
+- Your handler takes too long to respond
+
+Combine idempotent processing with quick responses to make retries safe:
+
+- Treat every event as potentially re-delivered.
+- Make your operations safe to run multiple times (for example, upserts instead of blind inserts, checks for existing records, or versioning where appropriate).
+
+### Keep local records up to date
+
+You may want to maintain local representations of Slack entities, such as channels, users, or messages. To keep these up to date:
+
+- Use incoming events to update your local records incrementally (for example, creating or updating a local message record when you receive a `message` event).
+- When you detect gaps or inconsistencies (for example, missing older messages), call Slack&apos;s Web APIs to backfill data.
+- Record identifiers from Slack (such as `team_id`, `channel`, and `user`) so you can correlate events with your own tenants, projects, or users.
+
+By combining verified events, idempotent processing using `event_id`, and periodic backfills where needed, your app can maintain an accurate, long-lived view of Slack activity.
 
 ## Example: handling events in Node and Express
 
@@ -312,6 +399,7 @@ app.post(
         );
 
         // TODO: call your app logic here
+        // For example: enqueue a job to sync this message into your data store
       }
     }
 
@@ -369,6 +457,7 @@ Confirm that:
 - You use the raw request body bytes to compute the HMAC; parsing JSON before verification will break the signature.
 - The timestamp tolerance (for example, 5 minutes) matches your code logic and your server&apos;s clock is accurate.
 - You are using `crypto.timingSafeEqual` or an equivalent constant-time comparison to avoid subtle mismatches.
+- You are logging enough context in a safe environment (for example, base string and computed signature) to compare with Slack&apos;s expectations when debugging.
 
 </Expandable>
 
