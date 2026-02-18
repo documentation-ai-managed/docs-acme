@@ -86,21 +86,19 @@
                 "path": "authentication",
                 "icon": "lock"
               }
-            ]
-          },
-          {
-            "group": "Sample Endpoints",
-            "openapi": "openapi.yaml"
-          },
-          {
-            "group": "Test",
-            "pages": [],
+            ],
             "openapi": "api-reference/sample-api.yaml"
           },
           {
+            "group": "Sample Endpoints"
+          },
+          {
+            "group": "Test",
+            "pages": []
+          },
+          {
             "group": "text",
-            "pages": [],
-            "openapi": "api-reference/sample1-api.yaml"
+            "pages": []
           }
         ]
       },
