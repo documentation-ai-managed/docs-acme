@@ -96,6 +96,11 @@
             "group": "Test",
             "pages": [],
             "openapi": "api-reference/sample-api.yaml"
+          },
+          {
+            "group": "text",
+            "pages": [],
+            "openapi": "api-reference/sample1-api.yaml"
           }
         ]
       },
