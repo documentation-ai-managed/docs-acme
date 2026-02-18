@@ -91,6 +91,11 @@
           {
             "group": "Sample Endpoints",
             "openapi": "openapi.yaml"
+          },
+          {
+            "group": "Test",
+            "pages": [],
+            "openapi": "api-reference/sample-api.yaml"
           }
         ]
       },
