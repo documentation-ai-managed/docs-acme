@@ -120,7 +120,7 @@
   },
   "logo-light": "https://blob-cdn.documentation.ai/org-ee908ab1-0e59-405f-a943-20d3258d616c/doc-ed05b76a-c955-423c-94e1-fcc3738e9edb/1771415649283-b3tonwdfl1s-ACME-logo.png?q=85&fm=auto&auto=compress%2Cformat",
   "initialRoute": "introduction",
-  "template": "atlas",
+  "template": "classic",
   "seo": {
     "robots:index": true,
     "robots:follow": true
