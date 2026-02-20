@@ -9,115 +9,77 @@
     }
   },
   "navigation": {
-    "products": [
+    "groups": [
       {
-        "product": "Alpha",
-        "tabs": [
+        "group": "API Overview",
+        "icon": "file-text",
+        "pages": [
           {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Getting Started",
-                "icon": "rocket",
-                "pages": [
-                  {
-                    "title": "Introduction",
-                    "path": "introduction",
-                    "icon": "home"
-                  },
-                  {
-                    "title": "Quickstart",
-                    "path": "quickstart",
-                    "icon": "zap"
-                  },
-                  {
-                    "title": "Troubleshooting",
-                    "path": "troubleshooting",
-                    "icon": "alert-octagon"
-                  }
-                ]
-              },
-              {
-                "group": "Integrations",
-                "icon": "plug",
-                "pages": [
-                  {
-                    "title": "Overview",
-                    "path": "integrations",
-                    "icon": "layout-panel-top"
-                  },
-                  {
-                    "title": "Slack",
-                    "path": "slack",
-                    "icon": "message-square"
-                  },
-                  {
-                    "title": "Microsoft Teams",
-                    "path": "teams",
-                    "icon": "users"
-                  },
-                  {
-                    "title": "Google Drive",
-                    "path": "google-drive",
-                    "icon": "hard-drive"
-                  },
-                  {
-                    "title": "Intercom",
-                    "path": "intercom",
-                    "icon": "headset"
-                  }
-                ]
-              },
-              {
-                "group": "Updates",
-                "pages": [
-                  {
-                    "title": "Changelog",
-                    "path": "changelog",
-                    "icon": "history"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Reference",
-            "dropdowns": [
-              {
-                "dropdown": "Version 1",
-                "groups": [
-                  {
-                    "group": "API Overview",
-                    "icon": "file-text",
-                    "pages": [
-                      {
-                        "title": "Authentication",
-                        "path": "authentication",
-                        "icon": "lock"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "dropdown": "Version 2",
-                "pages": [
-                  {
-                    "title": "New API",
-                    "path": "new-api"
-                  }
-                ]
-              }
-            ]
+            "title": "Authentication",
+            "path": "authentication",
+            "icon": "lock"
           }
         ]
       },
       {
-        "product": "Beta",
+        "group": "Getting Started",
+        "icon": "rocket",
         "pages": [
           {
-            "title": "Beta docs",
-            "path": "beta-docs"
+            "title": "Introduction",
+            "path": "introduction",
+            "icon": "home"
+          },
+          {
+            "title": "Quickstart",
+            "path": "quickstart",
+            "icon": "zap"
+          },
+          {
+            "title": "Troubleshooting",
+            "path": "troubleshooting",
+            "icon": "alert-octagon"
+          }
+        ]
+      },
+      {
+        "group": "Integrations",
+        "icon": "plug",
+        "pages": [
+          {
+            "title": "Overview",
+            "path": "integrations",
+            "icon": "layout-panel-top"
+          },
+          {
+            "title": "Slack",
+            "path": "slack",
+            "icon": "message-square"
+          },
+          {
+            "title": "Microsoft Teams",
+            "path": "teams",
+            "icon": "users"
+          },
+          {
+            "title": "Google Drive",
+            "path": "google-drive",
+            "icon": "hard-drive"
+          },
+          {
+            "title": "Intercom",
+            "path": "intercom",
+            "icon": "headset"
+          }
+        ]
+      },
+      {
+        "group": "Updates",
+        "pages": [
+          {
+            "title": "Changelog",
+            "path": "changelog",
+            "icon": "history"
           }
         ]
       }
