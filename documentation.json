@@ -82,30 +82,40 @@
           },
           {
             "tab": "API Reference",
-            "groups": [
+            "dropdowns": [
               {
-                "group": "Rest API",
-                "pages": [
+                "dropdown": "Accounts",
+                "groups": [
                   {
-                    "title": "Auth",
-                    "path": "auth",
-                    "icon": "folder-code-icon"
-                  },
-                  {
-                    "title": "SDKS",
-                    "path": "sdks",
-                    "icon": "code"
+                    "group": "API Overview",
+                    "icon": "file-text",
+                    "pages": [
+                      {
+                        "title": "Authentication",
+                        "path": "authentication",
+                        "icon": "lock"
+                      }
+                    ]
                   }
                 ]
               },
               {
-                "group": "API Overview",
-                "icon": "file-text",
-                "pages": [
+                "dropdown": "Payments",
+                "groups": [
                   {
-                    "title": "Authentication",
-                    "path": "authentication",
-                    "icon": "lock"
+                    "group": "Rest API",
+                    "pages": [
+                      {
+                        "title": "Auth",
+                        "path": "auth",
+                        "icon": "folder-code-icon"
+                      },
+                      {
+                        "title": "SDKS",
+                        "path": "sdks",
+                        "icon": "code"
+                      }
+                    ]
                   }
                 ]
               }
